@@ -1,0 +1,292 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Will You Be My Valentine?</title>
+  <style>
+    :root{--pink:#e75480;--dark-pink:#c2185b;--bg:#ffe6e6;--box:#fff0f5;--max-box:620px}
+    *{box-sizing:border-box}
+    html{font-family:Inter,'Segoe UI',Tahoma,sans-serif;font-size:clamp(14px,1.5vw,18px)}
+    body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;background:var(--bg);padding:1rem;overflow-x:hidden}
+
+    /* Intro overlay (shown before main) */
+    .intro-overlay{
+      position:fixed; inset:0; display:flex; align-items:center; justify-content:center;
+      background:linear-gradient(180deg, rgba(255,230,230,0.99), rgba(255,240,240,0.97));
+      z-index:400; padding:2rem; text-align:center;
+    }
+    .intro-card{
+      background:white; padding:1.6rem; border-radius:14px; max-width:720px; width:92%;
+      box-shadow:0 24px 60px rgba(199,25,85,0.12);
+    }
+    .intro-title{color:var(--dark-pink); font-weight:800; font-size:clamp(1rem,2.6vw,1.4rem); margin:0 0 .6rem}
+    .intro-desc{color:#b02b5c; margin:0 0 1rem}
+    .intro-actions{display:flex; gap:.6rem; justify-content:center; margin-top:0.6rem; flex-wrap:wrap}
+    .intro-actions button{padding:.6rem 1.2rem; border-radius:10px; border:0; cursor:pointer; font-weight:700; background:var(--pink); color:white; min-width:120px}
+    .intro-actions button.secondary{background:#f0a3bf; color:#5a0024}
+
+    /* rest of page (main) */
+    .valentine-box{
+      width:clamp(300px,70vw,var(--max-box));
+      background:var(--box);
+      padding:clamp(2rem,5vw,3rem);
+      border-radius:14px;
+      box-shadow:0 8px 30px rgba(199,25,85,0.08);
+      text-align:center;
+      animation:boxEnter .7s cubic-bezier(.34,.1,.68,1) both;
+      position:relative;
+      overflow:visible;
+    }
+    @keyframes boxEnter{0%{opacity:0;transform:translateY(20px) scale(.92)}100%{opacity:1;transform:translateY(0) scale(1)}}
+    h1{color:var(--pink);margin:0 0 1rem;font-size:clamp(1.3rem,3vw,1.8rem);animation:titleSlideIn .6s ease-out .2s both;letter-spacing:.5px}
+    @keyframes titleSlideIn{0%{opacity:0;transform:translateY(-10px)}100%{opacity:1;transform:translateY(0)}}
+    .actions{display:flex;gap:.8rem;justify-content:center;align-items:center;margin-top:.5rem;flex-wrap:wrap}
+    button{padding:.6rem 1.3rem;border:0;border-radius:10px;background:var(--pink);color:#fff;cursor:pointer;font-weight:600;transition:all .24s cubic-bezier(.25,.46,.45,.94);box-shadow:0 6px 18px rgba(199,25,85,0.12);min-width:110px;animation:buttonFadeIn .5s ease-out .35s both;position:relative}
+    @keyframes buttonFadeIn{0%{opacity:0;transform:translateY(10px)}100%{opacity:1;transform:translateY(0)}}
+    button:hover:not(:disabled){transform:translateY(-4px) scale(1.05);background:var(--dark-pink);box-shadow:0 12px 28px rgba(199,25,85,0.2)}
+    button:active:not(:disabled){transform:translateY(-1px) scale(.98);box-shadow:0 4px 12px rgba(199,25,85,0.15)}
+    button:disabled{cursor:not-allowed;opacity:.9;box-shadow:none;background:linear-gradient(90deg,#f0a3bf 0%,#e7b0c8 100%);animation:successPulse .6s cubic-bezier(.68,.55,.265,1.55) 1}
+    @keyframes successPulse{0%{transform:scale(1)}50%{transform:scale(1.08)}100%{transform:scale(1)}}
+    #noBtn.no-disabled{animation:wiggle 800ms ease-in-out infinite}
+    @keyframes wiggle{0%{transform:translateX(0) rotate(0)}25%{transform:translateX(-6px) rotate(-6deg)}50%{transform:translateX(6px) rotate(6deg)}75%{transform:translateX(-4px) rotate(-4deg)}100%{transform:translateX(0) rotate(0)}}
+    #noBtn.pulse{animation:pulse 1.2s cubic-bezier(.17,.67,.83,.67) 1}
+    @keyframes pulse{0%{transform:scale(.96)}50%{transform:scale(1.08)}100%{transform:scale(1)}}
+    @media (max-width:480px){.actions{flex-direction:column}button{width:100%;min-width:0}.maybe-options button{width:100%}}
+    .response{margin-top:1.2rem;min-height:1.2em;color:#d72660;font-size:1rem;animation:responseSlideUp .45s ease-out}
+    @keyframes responseSlideUp{0%{opacity:0;transform:translateY(8px)}100%{opacity:1;transform:translateY(0)}}
+
+    /* modal, celebration and other styles (unchanged) */
+    .overlay{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.36);z-index:50;opacity:0;transition:opacity .3s ease;backdrop-filter:blur(0px)}
+    .overlay.show{display:flex;opacity:1;backdrop-filter:blur(3px)}
+    .modal{background:#fff;padding:1rem 1.2rem;border-radius:12px;width:min(92%,430px);transform:translateY(20px) scale(.85);transition:all .3s cubic-bezier(.34,.1,.68,1);opacity:0;box-shadow:0 20px 60px rgba(0,0,0,.15)}
+    .overlay.show .modal{transform:translateY(0) scale(1);opacity:1}
+    .modal h2{margin:0 0 .6rem;color:var(--dark-pink);animation:modalTitleFade .4s ease-out .15s both}
+    @keyframes modalTitleFade{0%{opacity:0;transform:translateY(-8px)}100%{opacity:1;transform:translateY(0)}}
+    .modal .modal-actions{display:flex;gap:.5rem;justify-content:center;flex-wrap:wrap}
+    .maybe-options{display:flex;flex-direction:column;gap:.5rem;margin-top:.4rem}
+    .maybe-options button{background:linear-gradient(135deg,#f5a3c0,#f07aa9);color:#fff;font-weight:700;padding:.6rem;border-radius:8px;transition:all .2s ease}
+    .maybe-options button:hover:not(:disabled){transform:translateY(-3px) translateX(4px);background:linear-gradient(135deg,#f07aa9,#ed5fa0);box-shadow:0 8px 20px rgba(199,25,85,0.2)}
+
+    /* celebration popup styles */
+    #celebrationOverlay{z-index:200}
+    #celebrationModal{background:linear-gradient(135deg,#fff0f5 0%,#ffe6e6 100%);padding:2rem 1.5rem;border-radius:16px;width:min(95%,520px);box-shadow:0 30px 80px rgba(199,25,85,0.25);transform:translateY(40px) scale(.8);position:relative}
+    #celebrationOverlay.show #celebrationModal{transform:translateY(0) scale(1);animation:celebrationBounce .6s cubic-bezier(.34,.1,.68,1)}
+    @keyframes celebrationBounce{0%{transform:translateY(40px) scale(.8)}60%{transform:translateY(-10px) scale(1.02)}100%{transform:translateY(0) scale(1)}}
+    .celebration-image{width:100%;max-width:380px;height:auto;margin:0 auto 1.5rem;border-radius:12px;animation:imageZoomIn .5s ease-out .2s both;box-shadow:0 10px 30px rgba(199,25,85,0.15);object-fit:cover}
+    @keyframes imageZoomIn{0%{opacity:0;transform:scale(.6) rotate(-5deg)}100%{opacity:1;transform:scale(1) rotate(0)}}
+    .celebration-text{text-align:center;color:var(--pink);font-weight:700;font-size:1.3rem;margin:0 0 1.2rem;animation:textPulse .6s ease-out .4s both}
+    @keyframes textPulse{0%{opacity:0;transform:scale(.8)}100%{opacity:1;transform:scale(1)}}
+    .celebration-close{display:block;margin:0 auto;padding:.7rem 2rem;background:var(--pink);color:#fff;border:0;border-radius:8px;font-weight:700;cursor:pointer;transition:all .2s;animation:buttonFadeIn .5s ease-out .5s both}
+    .celebration-close:hover{background:var(--dark-pink);transform:translateY(-2px)}
+
+    .confetti{position:fixed;pointer-events:none;font-size:1.2rem;animation:confettiFall 2.2s ease-out forwards;z-index:100}
+    @keyframes confettiFall{0%{opacity:1;transform:translateY(0) translateX(0) rotate(0deg) scale(1)}100%{opacity:0;transform:translateY(120px) translateX(var(--tx)) rotate(360deg) scale(0.2)}}
+    .floating-heart{position:fixed;pointer-events:none;font-size:3.5rem;animation:floatUp 3.5s ease-in-out forwards;z-index:100;filter:drop-shadow(0 4px 8px rgba(199,25,85,0.2))}
+    @keyframes floatUp{0%{opacity:1;transform:translateY(0) translateX(0) scale(0.3) rotate(0deg)}50%{opacity:1;transform:translateY(-60px) translateX(var(--float-x)) scale(1) rotate(15deg)}100%{opacity:0;transform:translateY(-180px) translateX(var(--float-x)) scale(0.8) rotate(30deg)}}
+    .popper{position:fixed;pointer-events:none;animation:popperBurst .8s cubic-bezier(.68,.55,.265,1.55) forwards;z-index:100;font-size:2rem}
+    @keyframes popperBurst{0%{opacity:1;transform:translate(0,0) scale(1)}100%{opacity:0;transform:translate(var(--burst-x),var(--burst-y)) scale(0)}}
+  </style>
+</head>
+<body>
+  <!-- Intro overlay shown on page open -->
+  <div class="intro-overlay" id="introOverlay" role="dialog" aria-modal="true">
+    <div class="intro-card" id="introCard">
+      <h2 class="intro-title">Ready for the most awaited question?</h2>
+      <p class="intro-desc">Are you ready to give the answer to the most awaited question?</p>
+      <div class="intro-actions">
+        <button id="introYes">Yes, let's go!</button>
+        <button id="introNo" class="secondary">Not yet</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="valentine-box" id="box">
+    <h1>Will you be my Valentine?</h1>
+    <div class="actions">
+      <button id="yesBtn">Yes</button>
+      <button id="noBtn" disabled class="no-disabled">No</button>
+    </div>
+    <div class="response" id="response"></div>
+  </div>
+
+  <!-- existing modals (unchanged) -->
+  <div class="overlay" id="overlay" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <h2 id="modalTitle">You can still say yes — choose one:</h2>
+      <div class="modal-actions">
+        <button id="modalYes">Yes, I will ❤️</button>
+        <button id="modalMaybe" class="secondary">Maybe (I need time)</button>
+        <button id="modalNo" class="secondary">No, I'm sure 😢</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="overlay" id="maybeOverlay" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="maybeTitle">
+      <h2 id="maybeTitle">How about one of these?</h2>
+      <div class="maybe-options">
+        <button id="maybe1">We can have a waffle at your favourite place</button>
+        <button id="maybe2">A cozy night out</button>
+        <button id="maybe3">A lovely dinner at your fav place only</button>
+        <button id="maybe4">Please say yes baccha</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Celebration Popup Modal -->
+  <div class="overlay" id="celebrationOverlay" aria-hidden="true">
+    <div class="modal" id="celebrationModal" role="dialog" aria-modal="true">
+      <img src="mom and dad.jpeg" alt="celebration" class="celebration-image">
+      <div class="celebration-text">You said YES! 🎉</div>
+      <button class="celebration-close" onclick="closeCelebration()">Close</button>
+    </div>
+  </div>
+
+  <script>
+    const introOverlay = document.getElementById('introOverlay');
+    const introYes = document.getElementById('introYes');
+    const introNo = document.getElementById('introNo');
+
+    const box = document.getElementById('box');
+    const yesBtn = document.getElementById('yesBtn');
+    const noBtn = document.getElementById('noBtn');
+    const response = document.getElementById('response');
+    const overlay = document.getElementById('overlay');
+    const modalYes = document.getElementById('modalYes');
+    const modalMaybe = document.getElementById('modalMaybe');
+    const modalNo = document.getElementById('modalNo');
+    const maybeOverlay = document.getElementById('maybeOverlay');
+    const celebrationOverlay = document.getElementById('celebrationOverlay');
+    const maybe1 = document.getElementById('maybe1');
+    const maybe2 = document.getElementById('maybe2');
+    const maybe3 = document.getElementById('maybe3');
+    const maybe4 = document.getElementById('maybe4');
+
+    let noState = 0;
+    let isFinalized = false;
+
+    // floating hearts, poppers and confetti helpers (unchanged)
+    function createFloatingHearts(){ for(let i=0;i<8;i++){ const heart=document.createElement('div'); heart.className='floating-heart'; heart.textContent='💖'; const startX=Math.random()*window.innerWidth; const floatX=(Math.random()-0.5)*200; heart.style.left=startX+'px'; heart.style.top=window.innerHeight+'px'; heart.style.setProperty('--float-x', floatX+'px'); heart.style.animationDelay=Math.random()*0.5+'s'; document.body.appendChild(heart); setTimeout(()=>heart.remove(),3600); } }
+    function createPoppers(){ const popperEmojis=['🎉','✨','🎊','💥']; for(let i=0;i<16;i++){ const popper=document.createElement('div'); popper.className='popper'; popper.textContent=popperEmojis[Math.floor(Math.random()*popperEmojis.length)]; const angle=(i/16)*Math.PI*2; const distance=150; const x=Math.cos(angle)*distance; const y=Math.sin(angle)*distance; popper.style.left=window.innerWidth/2+'px'; popper.style.top=window.innerHeight/2+'px'; popper.style.setProperty('--burst-x', x+'px'); popper.style.setProperty('--burst-y', y+'px'); popper.style.animationDelay=Math.random()*0.15+'s'; document.body.appendChild(popper); setTimeout(()=>popper.remove(),1000); } }
+    function createConfetti(){ const confettiPieces=['💖','✨','💕','🎉','💝']; for(let i=0;i<20;i++){ const confetti=document.createElement('div'); confetti.className='confetti'; confetti.textContent=confettiPieces[Math.floor(Math.random()*confettiPieces.length)]; confetti.style.left=Math.random()*100+'%'; confetti.style.top='-20px'; confetti.style.setProperty('--tx',(Math.random()-0.5)*300+'px'); confetti.style.animationDelay=Math.random()*0.4+'s'; document.body.appendChild(confetti); setTimeout(()=>confetti.remove(),2500); } }
+
+    function openCelebrationModal(){ celebrationOverlay.classList.add('show'); celebrationOverlay.setAttribute('aria-hidden','false'); }
+    function closeCelebration(){ celebrationOverlay.classList.remove('show'); celebrationOverlay.setAttribute('aria-hidden','true'); }
+
+    // bump no (floating) behavior unchanged
+    function bumpNo(){ if(!noBtn.disabled || isFinalized) return; const boxRect=box.getBoundingClientRect(); const maxX=Math.max(60, Math.min(boxRect.width*0.6, window.innerWidth*0.22)); const maxY=Math.max(20, Math.min(boxRect.height*0.35, window.innerHeight*0.12)); const x=Math.floor(Math.random()*(maxX*2))-maxX; const y=Math.floor(Math.random()*(maxY*2))-Math.floor(maxY/2); noBtn.style.transition='transform 420ms cubic-bezier(.2,.9,.2,1)'; noBtn.style.transform=`translate(${x}px, ${y}px)`; setTimeout(()=>{ noBtn.style.transform=''; },700); }
+
+    // Start main interaction after intro Yes
+    function startMain(){
+      // hide intro
+      introOverlay.classList.remove('show');
+      introOverlay.style.display = 'none';
+      // enable NO after a short intro animation
+      setTimeout(()=>{
+        noBtn.disabled = false;
+        noBtn.classList.remove('no-disabled');
+        noBtn.classList.add('pulse');
+        setTimeout(()=>noBtn.classList.remove('pulse'),1500);
+      },300); // short delay so user sees the transition
+    }
+
+    // intro handlers
+    introYes.addEventListener('click', ()=> startMain());
+    introNo.addEventListener('click', ()=>{
+      // gentle message and keep intro open
+      introNo.textContent = "I'll come back";
+      introNo.disabled = true;
+      const desc = document.querySelector('.intro-desc');
+      desc.textContent = "No problem — take your time. Click 'Yes' when you're ready.";
+    });
+
+    // wire no button interactions (hover/touch)
+    noBtn.addEventListener('mouseenter', ()=>{ if(!isFinalized) bumpNo(); }, {passive:true});
+    noBtn.addEventListener('click', (e)=>{ if(!isFinalized && noBtn.disabled){ e.preventDefault(); bumpNo(); } });
+    noBtn.addEventListener('touchstart', (e)=>{ if(!isFinalized && noBtn.disabled){ e.preventDefault(); bumpNo(); }}, {passive:false});
+
+    // finalizeChoice(showCelebration true for positive outcomes only)
+    function finalizeChoice(showCelebration){
+      isFinalized = true;
+      yesBtn.disabled = true;
+      yesBtn.textContent = 'Yes ✓';
+      noBtn.disabled = true;
+      noBtn.textContent = 'Please rethink once again ✓';
+      noBtn.classList.remove('no-disabled');
+
+      if (showCelebration) {
+        createPoppers();
+        setTimeout(()=>createFloatingHearts(),300);
+        setTimeout(()=>createConfetti(),600);
+        setTimeout(()=>openCelebrationModal(),800);
+      }
+    }
+
+    yesBtn.addEventListener('click', ()=>{
+      response.textContent = 'Yay! You made my day! 💖';
+      finalizeChoice(true);
+      noState = 0;
+      closeAllModals();
+    });
+
+    function handleNo(){
+      if(noBtn.disabled) return;
+      if(noState===0){ noBtn.textContent = 'Are you really sure?'; response.textContent=''; noState=1; }
+      else if(noState===1){ noBtn.textContent = 'Please rethink once again 😢'; response.textContent=''; noState=2; }
+      else { openModal(); }
+    }
+    noBtn.addEventListener('click', handleNo);
+
+    function openModal(){ overlay.classList.add('show'); overlay.setAttribute('aria-hidden','false'); modalYes.focus(); }
+    function closeModal(){ overlay.classList.remove('show'); overlay.setAttribute('aria-hidden','true'); noState=0; }
+    function openMaybeModal(){ maybeOverlay.classList.add('show'); maybeOverlay.setAttribute('aria-hidden','false'); maybe1.focus(); }
+    function closeMaybeModal(){ maybeOverlay.classList.remove('show'); maybeOverlay.setAttribute('aria-hidden','true'); noState=0; }
+    function closeAllModals(){ closeModal(); closeMaybeModal(); }
+
+    modalYes.addEventListener('click', ()=>{
+      response.textContent = 'You made me the happiest! 💖';
+      finalizeChoice(true);
+      closeAllModals();
+    });
+
+    modalMaybe.addEventListener('click', ()=>{
+      closeModal();
+      openMaybeModal();
+    });
+
+    // final negative choice — disable buttons only, no celebration popup
+    modalNo.addEventListener('click', ()=>{
+      response.textContent = 'Oh no! Maybe next time? 😢';
+      finalizeChoice(false);
+      closeAllModals();
+    });
+
+    maybe1.addEventListener('click', ()=>{
+      response.textContent = "Waffles sound perfect — let's go! 🧇❤️";
+      finalizeChoice(true);
+      closeMaybeModal();
+    });
+    maybe2.addEventListener('click', ()=>{
+      response.textContent = "A cozy night out it is — I'll plan something nice ✨";
+      finalizeChoice(true);
+      closeMaybeModal();
+    });
+    maybe3.addEventListener('click', ()=>{
+      response.textContent = "Lovely dinner at your favourite place — my treat 🍽️❤️";
+      finalizeChoice(true);
+      closeMaybeModal();
+    });
+    maybe4.addEventListener('click', ()=>{
+      response.textContent = "Please say yes, baccha! 🙏❤️";
+      finalizeChoice(true);
+      closeMaybeModal();
+    });
+
+    overlay.addEventListener('click',(e)=>{ if(e.target===overlay) closeModal(); });
+    maybeOverlay.addEventListener('click',(e)=>{ if(e.target===maybeOverlay) closeMaybeModal(); });
+    celebrationOverlay.addEventListener('click',(e)=>{ if(e.target===celebrationOverlay) closeCelebration(); });
+    document.addEventListener('keydown',(e)=>{ if(e.key==='Escape') closeAllModals(); });
+  </script>
+</body>
+</html>
